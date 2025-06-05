@@ -4,11 +4,12 @@ import com.gusta.userapi.model.User;
 import com.gusta.userapi.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 
 @RestController
 @RequestMapping("/users")
+@SecurityRequirement(name = "bearerAuth") 
 public class UserController {
 
     private final UserRepository repo;
