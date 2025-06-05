@@ -5,11 +5,11 @@ import com.gusta.userapi.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-@SecurityRequirement(name = "bearerAuth") 
 public class UserController {
 
     private final UserRepository repo;
@@ -20,40 +20,45 @@ public class UserController {
         this.encoder = encoder;
     }
 
-    // Listar todos os usuários
+    // 🔐 Protegido por token JWT (apenas usuários autenticados)
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping
     public List<User> list() {
         return repo.findAll();
     }
 
-    // Cadastrar novo usuário
+    // 🔓 Público (sem autenticação JWT) - Cadastro de novo usuário
     @PostMapping
     public User create(@RequestBody User user) {
         user.setPassword(encoder.encode(user.getPassword())); // Criptografar senha
         return repo.save(user);
     }
 
-    // Buscar usuário por ID
+    // 🔐 Protegido
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")
     public User get(@PathVariable Long id) {
         return repo.findById(id).orElse(null);
     }
 
-    // Atualizar usuário
+    // 🔐 Protegido
+    @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}")
     public User update(@PathVariable Long id, @RequestBody User user) {
         user.setId(id);
-        user.setPassword(encoder.encode(user.getPassword())); // Criptografar senha
+        user.setPassword(encoder.encode(user.getPassword()));
         return repo.save(user);
     }
 
-    // Remover usuário
+    // 🔐 Protegido
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         repo.deleteById(id);
     }
 
-    // Página inicial após login
+    // 🔐 Protegido - apenas para teste após login
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/")
     @ResponseBody
     public String home() {
