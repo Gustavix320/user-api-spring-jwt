@@ -1,6 +1,8 @@
 package com.gusta.userapi.controller;
 
 import com.gusta.userapi.model.User;
+import com.gusta.userapi.model.UserRequestDTO;
+import com.gusta.userapi.model.UserResponseDTO;
 import com.gusta.userapi.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -20,44 +22,60 @@ public class UserController {
         this.encoder = encoder;
     }
 
-    // 🔐 Protegido por token JWT (apenas usuários autenticados)
+    // 🔓 Público - Criar novo usuário
+    @PostMapping
+    public UserResponseDTO create(@RequestBody UserRequestDTO dto) {
+        User user = new User();
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setRole(dto.getRole());
+        user.setPassword(encoder.encode(dto.getPassword()));
+
+        User saved = repo.save(user);
+        return new UserResponseDTO(saved.getId(), saved.getName(), saved.getEmail(), saved.getRole());
+    }
+
+    // 🔐 Protegido - Listar todos
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping
-    public List<User> list() {
-        return repo.findAll();
+    public List<UserResponseDTO> list() {
+        return repo.findAll().stream()
+                .map(user -> new UserResponseDTO(user.getId(), user.getName(), user.getEmail(), user.getRole()))
+                .toList();
     }
 
-    // 🔓 Público (sem autenticação JWT) - Cadastro de novo usuário
-    @PostMapping
-    public User create(@RequestBody User user) {
-        user.setPassword(encoder.encode(user.getPassword())); // Criptografar senha
-        return repo.save(user);
-    }
-
-    // 🔐 Protegido
+    // 🔐 Protegido - Buscar por ID
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/{id}")
-    public User get(@PathVariable Long id) {
-        return repo.findById(id).orElse(null);
+    public UserResponseDTO get(@PathVariable Long id) {
+        return repo.findById(id)
+                .map(user -> new UserResponseDTO(user.getId(), user.getName(), user.getEmail(), user.getRole()))
+                .orElse(null);
     }
 
-    // 🔐 Protegido
+    // 🔐 Protegido - Atualizar usuário
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody User user) {
+    public UserResponseDTO update(@PathVariable Long id, @RequestBody UserRequestDTO dto) {
+        User user = new User();
         user.setId(id);
-        user.setPassword(encoder.encode(user.getPassword()));
-        return repo.save(user);
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setRole(dto.getRole());
+        user.setPassword(encoder.encode(dto.getPassword()));
+
+        User updated = repo.save(user);
+        return new UserResponseDTO(updated.getId(), updated.getName(), updated.getEmail(), updated.getRole());
     }
 
-    // 🔐 Protegido
+    // 🔐 Protegido - Deletar usuário
     @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{id}")
     public void delete(@PathVariable Long id) {
         repo.deleteById(id);
     }
 
-    // 🔐 Protegido - apenas para teste após login
+    // 🔐 Protegido - Mensagem pós-login
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/")
     @ResponseBody
