@@ -75,11 +75,4 @@ public class UserController {
         repo.deleteById(id);
     }
 
-    // 🔐 Protegido - Mensagem pós-login
-    @SecurityRequirement(name = "bearerAuth")
-    @GetMapping("/")
-    @ResponseBody
-    public String home() {
-        return "✅ Login realizado com sucesso! Bem-vindo à API.";
-    }
 }
